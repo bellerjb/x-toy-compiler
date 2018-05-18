@@ -1,12 +1,13 @@
 let input = document.getElementById('input');
-let code = document.getElementById('code');
-let log = document.getElementById('log');
 
 input.addEventListener('input', () => {
   try {
-    code.value = compiler(input.value);
+    let result = compiler(input.value);
+    let code = document.getElementById('code');
+    code.value = result;
   } catch (err) {
     console.error(err);
+    let log = document.getElementById('log');
     log.value =
       '[' +
       new Date(Date.now()).toLocaleTimeString() +
