@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+      }
+
+      #container {
+        display: flex;
+        height: 100vh;
+      }
+
+      #input {
+        flex-grow: 1;
+        margin: 20px 0 20px 20px;
+      }
+
+      #output {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      #code {
+        flex-grow: 3;
+        margin: 20px 20px 0 20px;
+      }
+
+      #log {
+        font-weight: bold;
+        flex-grow: 1;
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <textarea id="input"></textarea>
+      <div id="output">
+        <textarea id="code"></textarea>
+        <textarea disabled id="log"></textarea>
+      </div>
+    </div>
+    <script type="text/javascript" src="x.js"></script>
+  </body>
+</html>
