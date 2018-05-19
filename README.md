@@ -11,6 +11,8 @@ let x          // Initialize a variable named x.
 let x = 10     // Initialize a variable named x and set it to 10.
 x = 15         // Sets x to 15.
 &1 = x         // Sets register 1 to the value of x.
+let y = io     // Initialize a variable named y and set it to user input.
+io = add(x, y) // Print the value of x + y.
 Label:         // Declare a jump label named "Label".
 
 add(x, y)      // Returns x + y.
@@ -29,7 +31,8 @@ exit()         // Halts the program.
 - [x] Variables
 - [x] Assignment
 - [x] Constants
-- [ ] Regiser Manipulation
+- [x] Register Manipulation
+- [ ] Proper Register Management
 - [ ] Labels
 - [x] Addition
 - [ ] Subtraction

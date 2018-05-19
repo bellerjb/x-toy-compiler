@@ -201,6 +201,18 @@ function parser(tokens) {
         node.params.push(walk());
       }
 
+      if (node.name === 'let') {
+        if (current < tokens.length && tokens[current].type === 'assign') {
+          current++;
+          node.params[1] = walk();
+        } else {
+          node.params[1] = {
+            type: 'NumberLiteral',
+            value: 0
+          };
+        }
+      }
+
       return node;
     }
 
@@ -243,6 +255,10 @@ function codeGenerator(ast) {
     {
       name: 'io',
       loc: 'FF'
+    },
+    {
+      name: 'temp',
+      loc: 'FE'
     }
   ];
 
@@ -277,6 +293,33 @@ function codeGenerator(ast) {
     return variable.loc;
   }
 
+  function newConst(value) {
+    let variable = variables.find(e => {
+      return e.name === value;
+    });
+
+    if (!variable) {
+      variable = {
+        name: value,
+        loc: toHex(0xff - variables.length).substring(2, 4)
+      };
+    }
+    variables.push(variable);
+
+    let code = variable.loc + ': ' + toHex(value);
+    output.push(code);
+
+    return variable.loc;
+  }
+
+  function freeRegister() {
+    return toHex(15 - registers++).substring(3, 4);
+  }
+
+  function nextLine() {
+    return toHex(address++).substring(2, 4);
+  }
+
   function assemble(node) {
     let destination;
 
@@ -286,39 +329,35 @@ function codeGenerator(ast) {
         break;
       }
       case 'Assignment': {
-        if (node.value.type === 'NumberLiteral') {
-          let val = toHex(node.value.value);
-          let addr = assemble(node.target);
-          let code = addr + ': ' + val;
-          output.push(code);
-          return true;
+        let register = assemble(node.value);
+        let addr;
+        if (node.target.type === 'Variable') {
+          addr = findVariable(node.target.value);
+        } else if (node.target.type === 'Register') {
+          addr = findVariable('temp');
         } else {
-          let register = assemble(node.value);
-          let addr;
-          if (node.target.type === 'Variable') {
-            addr = findVariable(node.target.value);
-          } else {
-            addr = assemble(node.target);
-          }
-          code = toHex(address++).substring(2, 4) + ': 9';
-          code += register + addr;
-          output.push(code);
-          return true;
+          addr = assemble(node.target);
         }
-      }
-      case 'NumberLiteral': {
-        let newVar = {
-          name: node.value,
-          loc: toHex(0xff - variables.length).substring(2, 4)
-        };
-        variables.push(newVar);
 
-        let code = newVar.loc + ': ' + toHex(node.value);
+        let code = nextLine() + ': 9';
+        code += register + addr;
         output.push(code);
 
-        destination = toHex(15 - registers++).substring(3, 4);
-        code = toHex(address++).substring(2, 4) + ': 8';
-        code += destination + newVar.loc;
+        if (node.target.type === 'Register') {
+          code = nextLine() + ': 8';
+          code += node.target.value + addr;
+          output.push(code);
+        }
+
+        registers = 0;
+        return true;
+      }
+      case 'NumberLiteral': {
+        let loc = newConst(node.value);
+
+        destination = freeRegister();
+        let code = nextLine() + ': 8';
+        code += destination + loc;
         output.push(code);
         return destination;
       }
@@ -330,28 +369,43 @@ function codeGenerator(ast) {
               loc: toHex(0xff - variables.length).substring(2, 4)
             };
             variables.push(newVar);
-            return newVar.loc;
+            let addr = newVar.loc;
+
+            if (node.params[1].type === 'NumberLiteral') {
+              let val = toHex(node.params[1].value);
+              let code = addr + ': ' + val;
+              output.push(code);
+            } else {
+              let register = assemble(node.params[1]);
+              let code = nextLine() + ': 9';
+              code += register + addr;
+              output.push(code);
+            }
+            registers = 0;
+            return addr;
           }
           case 'add': {
-            registers = 0;
             let first = assemble(node.params[0]);
             let second = assemble(node.params[1]);
-            let destination = toHex(address++).substring(2, 4);
-            let code = destination + ': 1D';
+            let destination = freeRegister();
+            let code = nextLine() + ': 1' + destination;
             code += first + second;
             output.push(code);
-            return 'D';
+            return destination;
           }
           default:
             throw new TypeError('This should never happen.');
         }
       }
       case 'Variable': {
-        destination = toHex(15 - registers++).substring(3, 4);
-        let code = toHex(address++).substring(2, 4) + ': 8';
+        destination = freeRegister();
+        let code = nextLine() + ': 8';
         code += destination + findVariable(node.value);
         output.push(code);
         return destination;
+      }
+      case 'Register': {
+        return node.value;
       }
       default:
         throw new TypeError(node.type);
