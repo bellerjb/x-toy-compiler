@@ -34,12 +34,7 @@ exit()         // Halts the program.
 - [x] Register Manipulation
 - [ ] Proper Register Management
 - [ ] Labels
-- [x] Addition
-- [ ] Subtraction
-- [ ] Bitwise And
-- [ ] Bitwise Or
-- [ ] Shift Right
-- [ ] Shift Left
+- [x] Arithmetic Operations
 - [ ] Jump Zero
 - [ ] Jump Positive
 - [ ] Exit

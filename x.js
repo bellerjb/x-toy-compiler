@@ -384,17 +384,19 @@ function codeGenerator(ast) {
             registers = 0;
             return addr;
           }
-          case 'add': {
+          default: {
             let first = assemble(node.params[0]);
             let second = assemble(node.params[1]);
             let destination = freeRegister();
-            let code = nextLine() + ': 1' + destination;
-            code += first + second;
+            let opcode = COMMANDS.find(e => {
+              return e.name === node.name;
+            }).opcode;
+
+            let code = nextLine() + ': ' + opcode;
+            code += destination + first + second;
             output.push(code);
             return destination;
           }
-          default:
-            throw new TypeError('This should never happen.');
         }
       }
       case 'Variable': {
@@ -418,12 +420,12 @@ function codeGenerator(ast) {
 
 let COMMANDS = [
   { name: 'let', args: 1 },
-  { name: 'add', args: 2 },
-  { name: 'sub', args: 2 },
-  { name: 'and', args: 2 },
-  { name: 'xor', args: 2 },
-  { name: 'shiftr', args: 2 },
-  { name: 'shiftl', args: 2 },
+  { name: 'add', args: 2, opcode: '1' },
+  { name: 'sub', args: 2, opcode: '2' },
+  { name: 'and', args: 2, opcode: '3' },
+  { name: 'xor', args: 2, opcode: '4' },
+  { name: 'shiftl', args: 2, opcode: '5' },
+  { name: 'shiftr', args: 2, opcode: '6' },
   { name: 'jz', args: 2 },
   { name: 'jp', args: 2 },
   { name: 'exit', args: 0 }
